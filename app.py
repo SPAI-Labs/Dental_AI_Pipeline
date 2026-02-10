@@ -7,7 +7,7 @@ import numpy as np
 # --- CONFIGURATION ---
 @st.cache_resource
 def load_models():
-    # Load your specific weights
+    # Load specific weights
     model_1 = YOLO("weights/stage1_best.pt")
     model_2 = YOLO("weights/stage2_best.pt")
     return model_1, model_2
@@ -22,9 +22,14 @@ def run_stage_1(model, image_np):
         best_box = sorted(results[0].boxes, key=lambda x: x.conf, reverse=True)[0]
         coords = best_box.xyxy[0].cpu().numpy().astype(int)
 
+        # Display class_id and class_name
+        class_id = int(best_box.cls)
+        class_name = results[0].names[class_id]
+
         output_json = {
             "stage": "01_roi_detection",
             "detected": True,
+            "class_name": class_name,
             "roi_bbox": coords.tolist(),
             "confidence": round(float(best_box.conf), 4)
         }
@@ -33,6 +38,7 @@ def run_stage_1(model, image_np):
         return coords, output_json, plot_img
     else:
         return None, {"stage": "01_roi_detection", "detected": False}, None
+
 
 
 # --- STAGE 2: DISEASE DETECTION ---
