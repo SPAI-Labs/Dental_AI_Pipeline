@@ -1,12 +1,6 @@
 # Dental_AI_Pipeline
 Stage_01 and Stage_02
 
-**Integration Guide**
-
-Here is the refined **Integration README** for your mobile application developer. It focuses strictly on how to use the repository to set up the backend, connect the mobile app, and implement the frontend visualization with your specific color requirements.
-
----
-
 # Mobile Integration Guide: Dental AI Pipeline
 
 ## 1. Project Overview
