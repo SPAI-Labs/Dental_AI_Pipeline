@@ -1,27 +1,23 @@
 import streamlit as st
-from ultralytics import YOLO
-from PIL import Image
 import numpy as np
+from PIL import Image
+from ultralytics import YOLO
 
 
 # --- 1. CONFIGURATION & MODEL LOADING ---
 @st.cache_resource
 def load_models():
-    # Load specific weights as per your local setup
+    # Force loading on CPU to avoid memory issues on cloud
     model_1 = YOLO("weights/stage1_best.pt")
     model_2 = YOLO("weights/stage2_best.pt")
     return model_1, model_2
 
 
-# --- 2. THE AI ENGINE (SINGLE IMAGE PROCESSOR) ---
+# --- 2. AI ENGINE ---
 def process_single_image(image_np, m1, m2):
-    """
-    Runs the full 2-stage pipeline on a single numpy image.
-    Returns: (roi_coords, stage1_json, stage1_plot, stage2_json, stage2_plot)
-    """
-    # STAGE 1: ROI
+    # Stage 1: ROI
     results_1 = m1(image_np, conf=0.25)
-    if len(results_1[0].boxes) == 0:
+    if not results_1[0].boxes:
         return None, {"detected": False, "error": "No mouth detected"}, None, None, None
 
     best_box = sorted(results_1[0].boxes, key=lambda x: x.conf, reverse=True)[0]
@@ -37,18 +33,17 @@ def process_single_image(image_np, m1, m2):
     }
     plot_1 = results_1[0].plot()
 
-    # STAGE 2: DISEASE (RGB/BGR Double Check)
+    # Stage 2: Disease (Double Check)
     x1, y1, x2, y2 = coords
     crop_img = image_np[y1:y2, x1:x2]
 
     res_rgb = m2(crop_img, conf=0.10)
-    img_bgr = crop_img[..., ::-1]
-    res_bgr = m2(img_bgr, conf=0.10)
+    res_bgr = m2(crop_img[..., ::-1], conf=0.10)
 
     if len(res_bgr[0].boxes) > len(res_rgb[0].boxes):
         final_res = res_bgr
         mode = "BGR (Color Flip)"
-        plot_2 = final_res[0].plot(img=crop_img)  # Plot on RGB for correct colors
+        plot_2 = final_res[0].plot(img=crop_img)
     else:
         final_res = res_rgb
         mode = "RGB (Standard)"
@@ -72,6 +67,9 @@ def process_single_image(image_np, m1, m2):
     }
 
     return coords, json_1, plot_1, json_2, plot_2
+
+
+# ... (UI logic from previous step)
 
 
 # --- 3. MAIN APP INTERFACE ---
