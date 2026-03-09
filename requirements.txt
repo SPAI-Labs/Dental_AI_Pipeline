@@ -1,7 +1,4 @@
-# Force the headless version first
 opencv-python-headless
-# Then install the AI framework
 ultralytics
-# Supporting libraries
 pillow
 numpy
