@@ -76,7 +76,7 @@ def process_single_image(image_np, m1, m2):
 
 # --- 3. MAIN APP INTERFACE ---
 st.set_page_config(page_title="Dental AI: Multi-Scan", layout="wide")
-st.title("🦷 Dental AI Diagnostic Pipeline")
+st.title("Dental AI Diagnostic Pipeline")
 
 m1, m2 = load_models()
 
@@ -85,13 +85,20 @@ scan_mode = st.sidebar.radio("Select Scan Type", ["Quick Scan (Frontal Only)", "
 
 images_to_process = {}
 
+# Validation Mapping: Expected Label vs Model Class Name
+# Label from UI: Expected Stage 1 Class Name
+VALID_MAP = {
+    "Frontal": "frontal",
+    "Maxilla": "maxilla",
+    "Mandible": "mandible"
+}
+
 if scan_mode == "Quick Scan (Frontal Only)":
     st.header("1. Quick Scan: Frontal View")
     up = st.file_uploader("Upload Frontal Image", type=["jpg", "png", "jpeg"], key="quick")
     if up:
         images_to_process["Frontal"] = Image.open(up).convert('RGB')
 
-    # Requirement: Only 1 image needed
     is_ready = len(images_to_process) == 1
 else:
     st.header("1. Full Scan: 3-Angle Upload")
@@ -106,28 +113,35 @@ else:
         up_md = st.file_uploader("Mandible (Lower)", type=["jpg", "png", "jpeg"], key="md")
         if up_md: images_to_process["Mandible"] = Image.open(up_md).convert('RGB')
 
-    # Requirement: All 3 images must be present
     is_ready = len(images_to_process) == 3
 
-# --- UPDATED EXECUTION LOGIC ---
 if is_ready:
-    if st.button("🚀 Run Complete Analysis", use_container_width=True):
+    if st.button("Run Complete Analysis", use_container_width=True):
         for label, img in images_to_process.items():
             st.divider()
-            st.subheader(f"📊 {label} View Results")
+            st.subheader(f"Results for: {label} View")
 
             img_np = np.array(img)
+
+            # 1. RUN STAGE 1 ONLY FIRST
             roi, j1, p1, j2, p2 = process_single_image(img_np, m1, m2)
 
             if roi is not None:
-                # Use columns and width parameter to keep images small
+                # 2. VALIDATION CHECK
+                detected_class = j1.get("class_name", "").lower()
+                expected_class = VALID_MAP.get(label).lower()
+
+                if detected_class != expected_class:
+                    st.error(f"Incorrect image uploaded for {label} view. Detected: {detected_class.capitalize()}.")
+                    st.image(p1, caption=f"Invalid {label} View Detection", width=400)
+                    continue  # Skip Stage 2 and move to next image
+
+                # 3. PROCEED TO DISPLAY IF VALID
                 c1, c2 = st.columns([1, 1])
                 with c1:
-                    # 'width=400' keeps the images from taking up the whole screen
                     st.image(p1, caption=f"{label}: Stage 1 (ROI)", width=400)
                     st.image(p2, caption=f"{label}: Stage 2 (Findings)", width=400)
                 with c2:
-                    # Single tab set to avoid repetitive JSON labels
                     tab1, tab2 = st.tabs(["Stage 1 Data", "Stage 2 Data"])
                     with tab1:
                         st.json(j1)
@@ -136,7 +150,6 @@ if is_ready:
             else:
                 st.error(f"Analysis failed for {label}: {j1['error']}")
 else:
-    # Inform the user what is missing
     needed = 3 if scan_mode == "Full Scan (3 Angles)" else 1
     current = len(images_to_process)
     st.info(f"Please upload all required images to begin. ({current}/{needed} uploaded)")
