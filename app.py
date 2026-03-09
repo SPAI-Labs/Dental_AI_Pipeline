@@ -1,5 +1,10 @@
+import os
+os.system("pip uninstall -y opencv-python opencv-contrib-python opencv-python-headless")
+os.system("pip install opencv-python-headless")
+
 import streamlit as st
 from ultralytics import YOLO
+# ... the rest of your code
 from PIL import Image
 import numpy as np
 
