@@ -1,3 +1,13 @@
+import os
+import subprocess
+
+# This manually uninstalls the broken OpenCV and ensures only Headless remains
+try:
+    import cv2
+except ImportError:
+    subprocess.check_call([os.sys.executable, "-m", "pip", "uninstall", "-y", "opencv-python", "opencv-contrib-python", "opencv-python-headless"])
+    subprocess.check_call([os.sys.executable, "-m", "pip", "install", "opencv-python-headless"])
+    
 import streamlit as st
 import numpy as np
 from PIL import Image
