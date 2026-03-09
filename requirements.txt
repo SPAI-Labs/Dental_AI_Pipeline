@@ -1,4 +1,6 @@
-streamlit
+# Force the headless version to avoid libGL errors
+opencv-python-headless
+# Then install the AI framework
 ultralytics
 pillow
-opencv-python-headless
+numpy
