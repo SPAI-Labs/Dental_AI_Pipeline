@@ -16,7 +16,7 @@ def load_models():
 # --- 2. AI ENGINE ---
 def process_single_image(image_np, m1, m2):
     # Stage 1: ROI
-    results_1 = m1(image_np, conf=0.25)
+    results_1 = m1(image_np, conf=0.1)
     if not results_1[0].boxes:
         return None, {"detected": False, "error": "No mouth detected"}, None, None, None
 
