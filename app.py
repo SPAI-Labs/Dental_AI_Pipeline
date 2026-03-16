@@ -16,12 +16,14 @@ def load_models():
 # --- 2. AI ENGINE ---
 def process_single_image(image_np, m1, m2):
     # Stage 1: ROI
-    # Attempt 1: Standard RGB Inference
-    results_1 = m1(image_np, conf=0.1)
+    # Ensure the array is exactly what YOLO expects
+    image_np = np.asanyarray(image_np).astype('uint8')
 
-    # Attempt 2: BGR Fallback (If RGB fails, flip channels and retry)
+    # Run Stage 1 with explicit image size to force consistency
+    results_1 = m1(image_np, conf=0.1, imgsz=640)
+
     if not results_1[0].boxes:
-        results_1 = m1(image_np[..., ::-1], conf=0.1)
+        results_1 = m1(image_np[..., ::-1], conf=0.1, imgsz=640)
 
     # Final Check
     if not results_1[0].boxes:
@@ -102,7 +104,9 @@ if scan_mode == "Quick Scan (Frontal Only)":
     st.header("1. Quick Scan: Frontal View")
     up = st.file_uploader("Upload Frontal Image", type=["jpg", "png", "jpeg"], key="quick")
     if up:
-        images_to_process["Frontal"] = Image.open(up).convert('RGB')
+        # Adding .copy() ensures the image is fully in memory and not a stream pointer
+        img_pil = Image.open(up).convert('RGB')
+        images_to_process["Frontal"] = img_pil.copy()
 
     is_ready = len(images_to_process) == 1
 else:
