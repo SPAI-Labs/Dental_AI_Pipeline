@@ -16,9 +16,16 @@ def load_models():
 # --- 2. AI ENGINE ---
 def process_single_image(image_np, m1, m2):
     # Stage 1: ROI
+    # Attempt 1: Standard RGB Inference
     results_1 = m1(image_np, conf=0.1)
+
+    # Attempt 2: BGR Fallback (If RGB fails, flip channels and retry)
     if not results_1[0].boxes:
-        return None, {"detected": False, "error": "No mouth detected"}, None, None, None
+        results_1 = m1(image_np[..., ::-1], conf=0.1)
+
+    # Final Check
+    if not results_1[0].boxes:
+        return None, {"detected": False, "error": "No mouth detected in either RGB or BGR mode"}, None, None, None
 
     best_box = sorted(results_1[0].boxes, key=lambda x: x.conf, reverse=True)[0]
     coords = best_box.xyxy[0].cpu().numpy().astype(int)
