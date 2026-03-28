@@ -1,0 +1,15 @@
+| Class                | Status             |
+| -------------------- | ------------------ |
+| Stain                | ✅ Present          |
+| Calculus             | ⚠️ Mild/Suspected  |
+| Caries               | ❌ Not obvious      |
+| Pit & fissure caries | ⚠️ Suspected       |
+| Fracture             | ❌ Not seen         |
+| Root stump           | ❌ Not seen         |
+| Restoration          | ❌ Not seen         |
+| Crown                | ❌ Not seen         |
+| Attrition            | ✅ Mild             |
+| Tooth gap            | ❌ Not seen         |
+| Bridge               | ❌ Not seen         |
+| Defective prosthesis | ❌ Not seen         |
+| Gingival condition   | ✅ Generally normal |
